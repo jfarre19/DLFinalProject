@@ -3,7 +3,7 @@
 
 ## Milestones (Links to an external site.)
 * ~Pick group members and problem: Monday 11/9~
-* Last day to define and obtain data for a problem: Wednesday 11/11
+* ~Last day to define and obtain data for a problem: Wednesday 11/11~
 * Last day to present first version that does better than a baseline: Monday 11/16
 * Last day to present improved second version: Monday 11/23
 * Last day to turn last version and the project report: Friday 12/4
