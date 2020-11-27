@@ -2,6 +2,8 @@ from tensorflow.keras.utils import Sequence
 from math import floor
 import numpy as np
 
+# Keras Sequencer allows us to avoid loading all image data at once and supports batching
+# Google QuickDraw dataset is about 38 GB
 class DataGenerator(Sequence):
     def __init__(self, metadata, batch_size):
         self.metadata = metadata
