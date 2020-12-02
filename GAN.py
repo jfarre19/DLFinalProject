@@ -10,12 +10,13 @@ from keras.optimizers import Adam
 
 # GAN class
 class GAN():
-    def __init__(self, data_generator, btach_size, epochs):
+    def __init__(self, data_generator):
         self.data_generator = data_generator
         self.generator = generator()
         self.discriminator = discriminator()
-        self.gan = gan()
-        train(self.generator, self.discriminator, self.gan, batch_size epochs)
+        self.gan = gan(self.generator, self.discriminator)
+
+        # train(self.generator, self.discriminator, self.gan, self.batch_size, self.epochs)
 
     # randomly generate latent space for generator input
     def gen_latent_space(latent_dim, batch_size):
@@ -23,29 +24,43 @@ class GAN():
         x_input = x_input.reshape(batch_size, latent_dim)
         return x_input
 
-    # from my understanding, training half batch real and fake = 1 full batch
-    # this is hopefully still training well enough and equally distributing the real/fake for a single batch    
-    # This does not translate to our Keras.sequence... I am leaving the code for now, but basically it isn't worth reading
-    def train(generator, discriminator, gan, data_generator, batch_size, epochs):
-        # get real samples and train discriminator
-        # returns a history object (if we want that data). We can pull loss from this
-        loss1, _ = discriminator.fit(x=data_generator, batch_size=batch_size//2, epochs=epochs)
+    def train(batch_size, epochs):
+        self.batch_size = batch_size
+        self.epochs = epochs
 
-        # generate fake examples from generator and train discriminator 
-        # I was a little confused how specifically to generate these samples for a cGAN -- like iterating over categories or something?
-        # returns another history object
-        latent_space = gen_latent_space(100, batch_size//2)
-        generator.predict(latent_space, category)
-        loss2, _ = discriminator.fit()
+        bat_per_epo = int(dataset[0].shape[0] / n_batch)
         
+        # FIXME use this?
+        half_batch = int(n_batch // 2)
+        
+        # iterate over epochs and epochs_per_batch
+        for i in range(epochs):
+            for j in range(batch_per_epo):
 
-        # get randomly selected 'real' samples
-        # update discriminator model weights
-        # generate 'fake' examples
-        # update discriminator model weights
-        # prepare points in latent space as input for the generator
-        # create inverted labels for the fake samples
-        # update the generator via the discriminator's error
+                # collect batch data from datagenerator class
+                [X_real, labels_real] = self.data_generator.__getitem__(j)
+                y_real = np.ones((half_batch, 1))
+
+                # train discriminator on current 'real' batch data
+                d_loss1, _ = discriminator.train_on_batch([X_real, labels_real], y_real)
+
+                # train discriminator on 'fake' generated batch data
+                latent_space = gen_latent_space(100, half_batch)                        # locally defined function
+                [X_fake, labels_fake] = generator.predict(latent_space, category)       # create data
+                y_fake = np.zeros((half_batch, 1))                                      # tell discriminator that these are fake
+                d_loss2, _ = discriminator.train_on_batch([X_fake, labels_fake], y_fake)  # train 'fake data' on batch
+
+                # prepare points in latent space as input for the generator
+                [z_input, labels_input] = generate_latent_points(latent_dim, n_batch)
+                # create inverted labels for the fake samples
+                y_gan = ones((n_batch, 1))
+                # update the generator via the discriminator's error
+                g_loss = gan_model.train_on_batch([z_input, labels_input], y_gan)
+                # summarize loss on this batch
+                print('>%d, %d/%d, d1=%.3f, d2=%.3f g=%.3f' %
+                    (i+1, j+1, bat_per_epo, d_loss1, d_loss2, g_loss))
+        # save the generator model
+        g_model.save('cgan_generator.h5')
 
     
     # define the combined generator and discriminator model, for updating the generator
