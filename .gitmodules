@@ -1,0 +1,3 @@
+[submodule "Keras-GAN"]
+	path = Keras-GAN
+	url = https://github.com/eriklindernoren/Keras-GAN
