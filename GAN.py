@@ -58,9 +58,10 @@ class GAN():
                 if j % 1000 == 0: 
                     print('>%d, %d/%d, d1=%.3f, d2=%.3f g=%.3f' %
                         (i+1, j+1, batch_per_epo, d_loss1, d_loss2, g_loss))
-        # save the generator model
-        g_model.save('cgan_generator.h5')
-
+        # save models
+        self.g_model.save('cgan_generator.h5')
+        self.d_model.save('cgan_discriminator.h5')
+        self.gan_model.save('cgan_GAN.h5')
     
     # define the combined generator and discriminator model, for updating the generator
     def gan(self):
