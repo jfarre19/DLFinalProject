@@ -32,14 +32,18 @@ class DataGenerator(Sequence):
         
         self.data = []
         for file in self.metadata['File Name']:
-            self.data.append(np.load(file, mmap_mode='r'))
+            try:
+                self.data.append(np.load(file, mmap_mode='r'))
+            except:
+                print("Missing class: %s" %(file))
         
         self.size = self.data[0].shape[1]
             
-        
+    # returns the number of images per batch
     def __len__(self):
         return floor(self.n_images / self.batch_size)
     
+    # returns a batch of images with associated category labels    
     def __getitem__(self, idx):
         start = idx * self.batch_size
         end = (idx+1) * self.batch_size
@@ -53,5 +57,5 @@ class DataGenerator(Sequence):
         for idx in range(self.batch_size):
             X[idx,:] = self.data[classes[idx]][indexes[idx],:]
         
-        X = X.reshape(self.batch_size,28,28)
+        X = X.reshape(self.batch_size, 28, 28, 1)
         return X,y
