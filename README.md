@@ -1,3 +1,5 @@
+![GIF of learning process](Final1.gif)
+
 # Deep Learning Final Project
 * Due Friday 12/4
 
