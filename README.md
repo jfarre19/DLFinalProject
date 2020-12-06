@@ -1,5 +1,8 @@
 ![GIF of learning process](Final1.gif)
 
+cGAN transfer learning code:
+https://github.com/eriklindernoren/Keras-GAN
+
 # Deep Learning Final Project
 * Due Friday 12/4
 
