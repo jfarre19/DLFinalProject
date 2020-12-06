@@ -1,20 +1,23 @@
 import numpy as np
-from keras.models import Sequential, Model
-from keras import Input
-from keras.layers import Dense
-from keras.layers import Reshape, Flatten
-from keras.layers import Conv2D, Conv2DTranspose, UpSampling2D
-from keras.layers import LeakyReLU, BatchNormalization, Dropout
-from keras.layers import Embedding, Concatenate
-
-from keras.optimizers import Adam
+from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, multiply
+from tensorflow.keras.layers import BatchNormalization, Activation, Embedding, ZeroPadding2D, Concatenate
+from tensorflow.keras.layers import LeakyReLU
+from tensorflow.keras.layers import UpSampling2D, Conv2D, Conv2DTranspose
+from tensorflow.keras.models import Sequential, Model
+from tensorflow.keras.optimizers import Adam
 
 # GAN class
 class GAN():
-    def __init__(self, data_generator):
+    def __init__(self, data_generator, g_model=None, d_model=None):
         self.data_generator = data_generator
-        self.g_model = self.generator(dropout=0.4, depth=32, alpha=0.2)
-        self.d_model = self.discriminator(dropout=0.4, depth=32, alpha=0.2)
+        self.g_model = g_model
+        self.d_model = d_model
+        if g_model is None:
+            self.g_model = self.generator(dropout=0.4, depth=32, alpha=0.2)
+        if d_model is None:
+            self.d_model = self.discriminator(dropout=0.4, depth=32, alpha=0.2)
+            
+        # compile gan model
         self.gan_model = self.gan()
 
     # randomly generate latent space for generator input
@@ -30,20 +33,22 @@ class GAN():
         batch_per_epo = self.data_generator.__len__()
         # half_batch = self.batch_size // 2
         
+        # ground truth labels
+        y_valid = np.ones((self.batch_size, 1)) 
+        y_fake = np.zeros((self.batch_size, 1))
+        
         # iterate over epochs and epochs_per_batch
         for i in range(self.epochs):
             for j in range(batch_per_epo):
                 # collect batch data from datagenerator class
                 [X_real, labels_real] = self.data_generator.__getitem__(j)
-                y_real = np.ones((self.batch_size, 1))
 
                 # train discriminator on current 'real' batch data
-                d_loss1, _ = self.d_model.train_on_batch([X_real, labels_real], y_real)
+                d_loss1, _ = self.d_model.train_on_batch([X_real, labels_real], y_valid)
 
                 # train discriminator on 'fake' generated batch data
                 latent_space = self.gen_latent_space(100, self.batch_size) # locally defined function
                 X_fake = self.g_model.predict([latent_space, labels_real]) # generate fake data
-                y_fake = np.zeros((self.batch_size, 1)) # tell discriminator that these are fake
                 d_loss2, _ = self.d_model.train_on_batch([X_fake, labels_real], y_fake) # train 'fake data' on batch
                 
                 # prepare points in latent space as input for the generator
